@@ -3,18 +3,35 @@
 	{
 		local ret = __original();
 		local originalLineCount = ret.len();
+		local careerStatsLinesStartWith = [
+			"DMG Dealt",
+			"Avg DMG/Battle",
+			"DMG Received",
+			"Avg DMG/Battle Received",
+			"Heaviest Hit",
+			"Hit Chance",
+			"Headshot Chance",
+			"Dodge Chance",
+			"Lucky 5",
+			"Unlucky 95"
+		];
 
 		try {
 			local removeCareerStatsLines = function() {
 				ret = ret.filter(function(index, value) {
 					if (value != null && value.id != null && value.text != null) {
-						return value.id < 6 || (value.id == 6 && (value.text == "In reserve" || value.text == "In the fighting line"));
+						if (value.id < 6 || (value.id == 6 && (value.text == "In reserve" || value.text == "In the fighting line")))
+							return true;
+
+						foreach (index, item in careerStatsLinesStartWith) {
+							if (value.text.find(item) != null) {
+								return false;
+							}
+						}
+
+						return true;
 					}
 				});
-
-				if (originalLineCount != ret.len()) {
-					::logInfo("Successfully trimmed Career Stats tooltip lines");
-				}
 			}
 
 			if (::MSU.Utils.getActiveState().ClassName == "world_state" && ::CareerStatsExt.userGivesPermission("HideCareerStatsExtraLinesWorld")) {
